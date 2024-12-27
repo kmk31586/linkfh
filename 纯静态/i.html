@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Redirect</title>
+  </head>
+  <body>
+    <script>
+      // 定义远程文本文件的 URL
+      const txtFileUrl = '/fh/urls.txt';
+
+      // 从远程文本文件获取数据并解析
+      fetch(txtFileUrl)
+        .then(response => response.text())  // 获取文本内容
+        .then(data => {
+          // 按行分割文本，生成 URL 数组
+          const urls = data.split('\n')
+            .map(url => url.trim()) // 去除每行的多余空格
+            .filter(url => {
+              // 确保 URL 是有效的，且没有空行或无效 URL
+              return url.length > 0 && isValidUrl(url);
+            });
+
+          // 如果 URL 数组为空，则输出错误信息
+          if (urls.length === 0) {
+            console.error('No valid URLs found.');
+            return;
+          }
+
+          // 随机选择一个 URL
+          let randomUrl = urls[Math.floor(Math.random() * urls.length)];
+
+          // 获取当前 URL 的查询参数
+          const currentUrlParams = new URLSearchParams(window.location.search);
+
+          // 如果有查询参数，将其附加到随机选择的 URL 后
+          if (currentUrlParams.toString()) {
+            randomUrl += (randomUrl.includes('?') ? '&' : '?') + currentUrlParams.toString();
+          }
+
+          // 执行重定向
+          window.location.href = randomUrl;
+        })
+        .catch(error => {
+          console.error('Error fetching the URL list:', error);
+        });
+
+      // 简单的 URL 验证函数
+      function isValidUrl(url) {
+        try {
+          new URL(url); // 尝试使用 URL 构造器验证 URL
+          return true;
+        } catch (e) {
+          return false; // 如果不是有效的 URL，则返回 false
+        }
+      }
+    </script>
+  </body>
+</html>
