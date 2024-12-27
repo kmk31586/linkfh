@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量管理目标 URL</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f9fc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .container {
+        background-color: white;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 900px;
+        margin-bottom: 30px;
+    }
+    h1 {
+        font-size: 28px;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    p.description {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        text-align: justify;
+    }
+    textarea {
+        width: 100%;
+        height: 180px;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+    }
+    button {
+        width: 100%;
+        padding: 15px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 18px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+        font-size: 16px;
+    }
+    th {
+        background-color: #f7f9fc;
+        color: #333;
+    }
+    a.toggle-link {
+        color: #007bff;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    a.toggle-link:hover {
+        text-decoration: underline;
+    }
+    .delete-button {
+        padding: 5px 10px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+    .delete-button:hover {
+        background-color: #d32f2f;
+    }
+    .message {
+        color: green;
+        font-size: 16px;
+        text-align: center;
+        margin-top: 10px;
+    }
+    .error {
+        color: red;
+        font-size: 16px;
+        text-align: center;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>批量添加和管理目标 URL</h1>
+    <p class="description">
+        在输入框内输入你的目标链接，每行一个，最多 50 条。用户访问上传的文件时会被重定向到这些目标 URL。
+        如果当前 URL 带有参数（例如：<code>http://example.com/page?user=123&ref=abc</code>），
+        重定向时这些参数会自动拼接到目标 URL（例如：<code>http://example.com/redirect?user=123&ref=abc</code>）。
+        如果你的目标链接不需要参数，则无需填写任何参数。
+    </p>
+    <form id="urlForm">
+        <textarea id="urlsInput" name="urls" placeholder="每行一个 URL，每次最多 50 条 URL"></textarea>
+        <br />
+        <button type="submit">提交 URL</button>
+    </form>
+    <div id="message" class="message"></div>
+    <div id="error" class="error"></div>
+    <table id="urlTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>跳转链接</th>
+                <th>当前状态</th>
+                <th>操作链接</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- URL 数据将动态加载 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+// 页面初始化时加载 URL 数据
+document.addEventListener('DOMContentLoaded', loadUrls);
+
+// 提交表单处理逻辑
+document.getElementById('urlForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const urls = document.getElementById('urlsInput').value.trim().split("\n").map(url => url.trim());
+    const messageDiv = document.getElementById('message');
+    const errorDiv = document.getElementById('error');
+
+    // 清空消息
+    messageDiv.innerHTML = '';
+    errorDiv.innerHTML = '';
+
+    if (urls.length > 50) {
+        errorDiv.textContent = "最多只能添加 50 条 URL，请检查并重新提交。";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('urls', urls.join("\n"));
+
+    fetch('add_url.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.textContent = "添加成功";
+            loadUrls(); // 重新加载 URL 数据
+        } else {
+            errorDiv.textContent = data.error || "提交失败，请稍后再试。";
+        }
+    })
+    .catch(() => {
+        errorDiv.textContent = "发生错误，请稍后再试。";
+    });
+});
+
+// 加载 URL 数据
+function loadUrls() {
+    fetch('get_urls.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#urlTable tbody');
+            tableBody.innerHTML = ''; // 清空表格
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.id}</td>
+                    <td>${row.url}</td>
+                    <td>
+                        <a class="toggle-link" onclick="toggleStatus(${row.id}, ${!row.is_available})">
+                            ${row.is_available ? '启用' : '禁用'}
+                        </a>
+                    </td>
+                    <td>
+                        <button class="delete-button" onclick="deleteUrl(${row.id})">删除</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        });
+}
+
+// 切换 URL 状态
+function toggleStatus(id, newStatus) {
+    fetch(`update_status.php?id=${id}&status=${newStatus}`, { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) loadUrls();
+            else alert(data.error || "切换状态失败，请稍后重试。");
+        });
+}
+
+// 删除 URL
+function deleteUrl(id) {
+    if (confirm('确定要删除这个 URL 吗？')) {
+        fetch(`delete_url.php?id=${id}`, { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) loadUrls();
+                else alert(data.error || "删除失败，请稍后重试。");
+            });
+    }
+}
+</script>
+</body>
+</html>
