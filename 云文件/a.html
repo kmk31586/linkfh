@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Redirect</title>
+  </head>
+  <body>
+    <script>
+      // 获取当前页面的查询参数
+      const params = new URLSearchParams(window.location.search);
+      
+      // 获取可用的 URL 并重定向
+      fetch('http://填写API地址/admin/get_available_urls.php')
+        .then(response => response.text())
+        .then(data => {
+          if (data && data !== "No available URLs found.") {
+            // 如果获得有效 URL，则拼接当前的查询参数
+            const redirectUrl = new URL(data);
+            redirectUrl.search = params.toString(); // 拼接查询参数
+            // 执行跳转
+            window.location.href = redirectUrl.toString();
+          } else {
+            console.error('No available URLs.');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching available URL:', error);
+        });
+    </script>
+  </body>
+</html>
