@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Redirect</title>
+  </head>
+  <body>
+    <script>
+      // 获取当前页面的查询参数
+      const params = new URLSearchParams(window.location.search);
+      
+      // 获取可用的 URL 并重定向
+      fetch('http://填写API地址/admin/get_available_urls.php')
+        .then(response => response.text())
+        .then(data => {
+          if (data && data !== "No available URLs found.") {
+            // 如果获得有效 URL，则拼接当前的查询参数
+            const redirectUrl = new URL(data);
+            redirectUrl.search = params.toString(); // 拼接查询参数
+
+            // 在页面中创建一个 <iframe> 元素
+            const iframe = document.createElement('iframe');
+            iframe.name = 'main'; // 设置 name 属性
+            iframe.src = redirectUrl.toString(); // 设置跳转的 URL
+            iframe.style.width = '100%'; // 宽度设置为 100%
+            iframe.style.height = '100vh'; // 设置高度为视口高度
+            iframe.style.border = 'none'; // 去除边框
+            iframe.scrolling = 'auto'; // 设置滚动条为自动
+
+            // 将 <iframe> 元素插入到页面中
+            document.body.appendChild(iframe);
+          } else {
+            console.error('No available URLs.');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching available URL:', error);
+        });
+    </script>
+  </body>
+</html>
