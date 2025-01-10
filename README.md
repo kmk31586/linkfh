@@ -6,7 +6,11 @@
 ### 环境要求
 - **PHP 版本：** 8.0
 - **数据库版本：** 5.7
-
+# 跨域开放
+add_header 'Access-Control-Allow-Origin' '*';
+add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+add_header 'Access-Control-Allow-Headers' 'DNT, Keep-Alive, Users-Agent, Cache-Control, Content-Type, Auth';
+add_header 'Access-Control-Allow-Credentials' 'true';
 ### 安装步骤
 
 1. **上传文件：** 
