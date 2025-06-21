@@ -1,4 +1,7 @@
-
+### 更新日志
+- 更新了一下点击文件
+![image](https://github.com/user-attachments/assets/387bf6fe-1ac7-46b7-8ca4-d22458bf3c35)
+![image](https://github.com/user-attachments/assets/a7473995-8c91-491a-8919-0dddd8e9bf13)
 ---
 
 # 使用说明
